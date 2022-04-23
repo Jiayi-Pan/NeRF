@@ -4,23 +4,26 @@ import json
 import os.path
 import cv2
 
-
 def load_blender(data_path: str, scale_factor: int = 0, data_type="train", device="cpu") -> tuple[
     torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     load data from blender datasets
-    :param data_path: path to dataset
-    :param scale_factor: scale image pixels using H << scale_factor
-    :param data_type: type of data to load, str in ("train", "val", "test")
-    :param device: device to be used in torch.Tensor
-    :return: tuple of (
-        imgs: tensor of shape NxWxHxC
-        poses: tensor of shape Nx4x4
-        int_mat: intrinsic matrix of shape 3x3
-        )
+
+    Args:
+        data_path (str): path to dataset
+        scale_factor (int, optional): scale image pixels using H << scale_factor. Defaults to 0.
+        data_type (str, optional): type of data to load, str in ("train", "val", "test"). Defaults to "train".
+        device (str, optional): device to be used. Defaults to "cpu".
+
+    Returns:
+        tuple of (
+                 imgs: tensor of shape NxWxHxC
+                 poses: tensor of shape Nx4x4
+                 int_mat: intrinsic matrix of shape 3x3
+                 )
     """
     assert (data_type in ("train", "val", "test"))
-    # read json
+
     json_path: str = os.path.join(data_path, "transforms_{}.json".format(data_type))
     with open(json_path) as f:
         meta: dict = json.load(f)
