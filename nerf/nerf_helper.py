@@ -1,14 +1,9 @@
 
-from tracemalloc import start
+
 import torch
 import torch.utils.data
 from torch import nn
 from torch.nn import functional as F
-
-
-def hello_model():
-    print("hello from model.py")
-
 
 
 def PosEncode(x, L):
@@ -27,6 +22,11 @@ def PosEncode(x, L):
     N = x.shape[0]
     enc_x = torch.zeros((N, 3, 2*L), dtype=x.dtype, device=x.device)
 
+    # Normalize x
+    sum_x = torch.sqrt(torch.sum(x**2, dim=1))
+    x /= sum_x
+    
+    # encode
     freq_band = 2**torch.floor(torch.arange(0, L, 0.5, device=x.device))
     freq_t_x = freq_band.reshape(1, -1) * x.reshape(N, -1, 1)  # freq_band*x (N, 3, 2L)
 
