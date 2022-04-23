@@ -64,3 +64,4 @@ def load_blender(data_path: str, scale_factor: int = 0, data_type="train", devic
     int_mat = int_mat.to(device=device, dtype=torch.float64)
 
     return imgs, poses, int_mat
+
