@@ -35,7 +35,8 @@ def load_blender(data_path: str, scale_factor: int = 0, data_type="train", devic
     for i, frame in enumerate(frames):
         img_path: str = os.path.join(data_path, "{}.png".format(frame['file_path']))
         # convert to rgb order
-        img_list.append(cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB))
+        img_list.append(cv2.cvtColor(
+            cv2.imread(img_path, cv2.IMREAD_UNCHANGED), cv2.COLOR_BGRA2RGBA))
         poses[i] = torch.Tensor(frame["transform_matrix"])
 
     # resize image

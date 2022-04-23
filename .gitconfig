@@ -1,0 +1,3 @@
+[filter "jupyternotebook"]
+	clean = jupyter nbconvert --to notebook --clear-output --inplace %f
+	required
