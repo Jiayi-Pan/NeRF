@@ -1,0 +1,18 @@
+# To run: conda env create -f environment.yml
+name: nerf
+channels:
+  - pytorch
+  - defaults
+dependencies:
+  - python
+  - pip
+  - pytorch
+  - torchvision
+  - torchaudio
+  - cudatoolkit=11.3
+  - numpy
+  - matplotlib
+  - jupyter
+  - configargparse
+  - pip:
+      - opencv-python

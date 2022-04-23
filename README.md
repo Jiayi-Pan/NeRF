@@ -1,6 +1,11 @@
 # A Guided Tour to Nerual Radiance Field
 
-# Data
+## Quick start
+```bash
+conda env create -f environment.yml
+conda activate nerf
+```
+## Data
 
 ### Blender
 
@@ -9,4 +14,4 @@
 + `frames`
   + `file_path` - path of the frame
   + `rotation` - not been used...
-  + [ ] `transform_matrix`
+  + `transform_matrix` - transform cam_frame -> world_frame
