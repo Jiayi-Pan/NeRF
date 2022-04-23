@@ -1,0 +1,84 @@
+
+import torch
+import torch.utils.data
+from torch import nn
+from torch.nn import functional as F
+
+def hello_model():
+    print("hello from model.py")
+
+
+
+class NeRF(nn.Module):
+    def __init__(self, ch_in_pos, ch_in_dir, skips=[4], fc_depth=8, fc_width=256):
+        super(NeRF, self).__init__()
+        '''
+
+        args:
+            ch_in_pos: number of input channels for encoded position
+            ch_in_dir: number of input channels for encoded direction
+            skip: where to include skip connection
+            fc_depth: depth of fully connected layer
+            fc_width: width of fully connected layer
+        '''
+
+        self.ch_in_pos = ch_in_pos
+        self.ch_in_dir = ch_in_dir
+        self.skips = skips
+        self.fc_depth = fc_depth
+        self.fc_width = fc_width
+
+        for i in range(fc_depth):
+            if i==0:
+                layer = nn.Linear(ch_in_pos, fc_width)
+            elif i in skips:
+                layer = nn.Linear(ch_in_pos + fc_width, fc_width)
+            else:
+                layer = nn.Linear(fc_width, fc_width)
+            
+            layer = nn.Sequential(
+                layer,
+                nn.ReLU()
+            )
+            setattr(self, f"fc_{i+1}", layer)
+        
+        self.fc_noact = nn.Linear(fc_width, fc_width)
+
+        self.fc_dir = nn.Sequential(
+            nn.Linear(fc_width + ch_in_dir, fc_width//2),
+            nn.ReLU()
+        )
+
+        # Output Layers
+        self.sigma = nn.Linear(fc_width, 1)
+        self.rgb = nn.Sequential(
+            nn.Linear(fc_width//2, 3),
+            nn.Sigmoid()
+        )
+    
+    def forward(self, pos, dirt):
+        '''
+        (pos + dir) ---NN--> (rgb, sigma)
+
+        args:
+            pos: (N, ch_in_pos)
+            dirt: (N, ch_in_dir)
+        
+        out:
+            rgb: (N, 3)
+            sigma: (N, 1)
+        '''
+        out = pos
+        for i in range(self.fc_depth):
+            if i in self.skips:
+                out = torch.cat((pos, out), -1)
+            out = getattr(self, f"fc_{i+1}")(out)
+        
+        sigma = self.sigma(out)
+
+        out = self.fc_noact(out)
+        out = torch.cat((out, dirt), -1)
+        out = self.fc_dir(out)
+        rgb = self.rgb(out)
+
+        return (rgb, sigma)
