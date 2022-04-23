@@ -15,3 +15,8 @@ conda activate nerf
   + `file_path` - path of the frame
   + `rotation` - not been used...
   + `transform_matrix` - transform cam_frame -> world_frame
+
+## Usage
+
+1. Download `nerf_synthetic.zip` from [Nerf Data](https://drive.google.com/drive/folders/128yBriW1IG_3NJ5Rp7APSTZsJqdJdfc1?usp=sharing), unzip under `./data/`
+2. Follow the instructions in `NeRF.ipynb`
