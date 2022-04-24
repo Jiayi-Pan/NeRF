@@ -91,14 +91,14 @@ def render_from_nerf(
     
     # span for each sampled points by diff
     depth_spans = sampled_depths[1:] - sampled_depths[:-1]
-    depth_spans = torch.cat(depth_spans, torch.Tensor(1e10))
+    depth_spans = torch.cat([depth_spans, torch.Tensor([1e10]).to(depth_spans)])
     
     # compute the weights for each point in a pixel by alpha and depth_span
     alpha_maps = 1. - torch.exp(- normed_raw_alpha_maps * depth_spans)
     
     # get exp(-\sum \delta * \sigma)
     cum_prods = torch.cumprod(1-alpha_maps + 1e-10, dim=-1)
-    cum_prods = cum_prods.roll(shifts=1, dim=-1)
+    cum_prods = cum_prods.roll(shifts=1, dims=-1)
     cum_prods[..., -1] = 0
     weights = alpha_maps * cum_prods
     

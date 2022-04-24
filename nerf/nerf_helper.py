@@ -12,7 +12,7 @@ def nerf_iter_once(model: nn.Module,
                   mat_c2w: Tensor,
                   sample_thresh: tuple[float, float],
                   num_samples: int = 16,
-                  batch_size=10)->tuple(Tensor, Tensor):
+                  batch_size=10)->tuple[Tensor, Tensor]:
     """
     iterate one time
 
@@ -44,21 +44,23 @@ def nerf_iter_once(model: nn.Module,
     # encode points
     # TODO: set encoding dimension as parameter
     encoded_samples = PosEncode(samples, 10)
-    encoded_dirs = PosEncode(rays_d, 4)
-
+    encoded_dirs = PosEncode(rays_d.reshape(-1,3), 4)
+    # print(encoded_dirs.shape)
+    # print(encoded_samples.shape)
     # train each pixel
     nerf_out_list: list = []
     n = len(encoded_dirs)
     for i in range(0, n, batch_size):
         if (i + batch_size > n):
             samples_crop = encoded_samples[num_samples * i:]
-            dirs_crop = encoded_dirs[i:].expand(samples_crop.shape)
+            dirs_crop = encoded_dirs[i:].repeat(num_samples,1)
         else:
             samples_crop = encoded_samples[num_samples * i: num_samples * (i+batch_size)]
-            dirs_crop = encoded_dirs[i:i+batch_size].expand(samples_crop.shape)
+            dirs_crop = encoded_dirs[i:i+batch_size].repeat(num_samples,1)
 
         nerf_out_list.append(
-                model(samples_crop, dirs_crop))
+                model(samples_crop, dirs_crop)
+        )
     
     nerf_out = torch.cat(nerf_out_list, dim=0)
 
@@ -85,6 +87,7 @@ def PosEncode(x, L):
     '''
     N = x.shape[0]
     enc_x = torch.zeros((N, 3, 2 * L), dtype=x.dtype, device=x.device)
+
 
     # Normalize x
     sum_x = torch.sqrt(torch.sum(x**2, dim=1)).reshape(N, 1)

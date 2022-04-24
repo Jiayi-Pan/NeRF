@@ -53,7 +53,8 @@ def load_blender(data_path: str, scale_factor: int = 0, data_type="train", devic
     # turn image into tensor
     imgs_np = np.stack(img_list, axis=0)
     imgs: torch.Tensor = torch.from_numpy(imgs_np)
-    imgs = imgs.to(device)
+    imgs = imgs.to(device=device, dtype=torch.float64)
+    imgs/=255
 
     # calculate focal length
     aov = meta["camera_angle_x"]

@@ -21,6 +21,7 @@ class NeRF(nn.Module):
             fc_width: width of fully connected layer
         '''
 
+        torch.set_default_dtype(torch.double)
         self.ch_in_pos = ch_in_pos
         self.ch_in_dir = ch_in_dir
         self.skips = skips
