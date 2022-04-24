@@ -66,7 +66,7 @@ def nerf_iter_once(model: nn.Module,
 
     nerf_out = nerf_out.reshape(img_dim[0], img_dim[1], num_samples, 4)
     # Perform differentiable volume rendering to re-synthesize the RGB image.
-    rgb_predicted, depth_img = render_from_nerf(nerf_out, rays_o, depth_values)
+    rgb_predicted, depth_img = render_from_nerf(nerf_out, depth_values)
 
     return rgb_predicted, depth_img
 

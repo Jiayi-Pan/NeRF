@@ -70,14 +70,12 @@ def queries_from_rays(
 
 def render_from_nerf(
     nerf_output: torch.Tensor,
-    rays_ori_xyz: torch.Tensor,
     sampled_depths: torch.Tensor
     )-> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """ Compute the rendering result from the output of NeRF
     
     Args:
     	nerf_output (torch.Tensor): nerf output in rgba, shape (W, H, num_samples, 4)
-    	rays_ori_xyz (torch.Tensor): starting location for each ray, shape (W, H, 3)
     	sampled_depths (torch.Tensor): sampled depth value for each ray (num_samples)
     
     Returns:
