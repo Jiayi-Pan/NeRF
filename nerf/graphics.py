@@ -85,7 +85,8 @@ def render_from_nerf(
     """	
     # normalize the nerf output
     normed_raw_alpha_maps = F.relu(nerf_output[..., 3])
-    rgb_maps = F.sigmoid(nerf_output[..., :3])
+    # TODO: why this?
+    rgb_maps = torch.sigmoid(nerf_output[..., :3])
     
     # span for each sampled points by diff
     depth_spans = sampled_depths[1:] - sampled_depths[:-1]
@@ -95,10 +96,10 @@ def render_from_nerf(
     alpha_maps = 1. - torch.exp(- normed_raw_alpha_maps * depth_spans)
     
     # get exp(-\sum \delta * \sigma)
-    cum_prods = torch.cumprod(1-alpha_maps + 1e-10, dim=-1)
-    cum_prods = cum_prods.roll(shifts=1, dims=-1)
-    cum_prods[..., -1] = 0
-    weights = alpha_maps * cum_prods
+    transmit_acc = torch.cumprod(1-alpha_maps + 1e-10, dim=-1)
+    transmit_acc = transmit_acc.roll(shifts=1, dims=-1)
+    transmit_acc[..., 0] = 1
+    weights = alpha_maps * transmit_acc
     
     # results
     rgb_img = (rgb_maps * weights.unsqueeze(-1)).sum(dim=-2)
