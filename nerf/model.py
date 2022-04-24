@@ -36,6 +36,7 @@ class NeRF(nn.Module):
             else:
                 layer = nn.Linear(fc_width, fc_width)
             
+            torch.nn.init.kaiming_normal_(layer.weight)
             layer = nn.Sequential(
                 layer,
                 nn.ReLU()
@@ -83,3 +84,37 @@ class NeRF(nn.Module):
 
         out = torch.cat((rgb, sigma), -1)
         return out
+
+
+
+class TinyNeRF(nn.Module):
+    def __init__(self, ch_in_pos, fc_width=128):
+        super(TinyNeRF, self).__init__()
+        '''
+
+        args:
+            ch_in_pos: number of input channels for encoded position (3*2*L)
+            ch_in_dir: number of input channels for encoded direction (3*2*L)
+        '''
+
+        torch.set_default_dtype(torch.double)
+        self.ch_in_pos = ch_in_pos
+        self.fc_width = fc_width
+
+        self.layer1 = torch.nn.Linear(ch_in_pos, fc_width)
+        # Layer 2 (default: 128 -> 128)
+        self.layer2 = torch.nn.Linear(fc_width, fc_width)
+        # Layer 3 (default: 128 -> 4)
+        self.layer3 = torch.nn.Linear(fc_width, 4)
+        # Short hand for torch.nn.functional.relu
+        self.relu = torch.nn.functional.relu
+    
+    def forward(self, x):
+        '''
+        (pos + dir) ---NN--> (rgb, sigma)
+
+        '''
+        x = self.relu(self.layer1(x))
+        x = self.relu(self.layer2(x))
+        x = self.layer3(x)
+        return x
