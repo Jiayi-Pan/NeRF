@@ -64,8 +64,8 @@ class NeRF(nn.Module):
             dirt: (N, ch_in_dir)
         
         out:
-            rgb: (N, 3)
-            sigma: (N, 1)
+            out: (N, 4)
+                rgb(3) + sigma(1)
         '''
         out = pos
         for i in range(self.fc_depth):
@@ -80,4 +80,5 @@ class NeRF(nn.Module):
         out = self.fc_dir(out)
         rgb = self.rgb(out)
 
-        return (rgb, sigma)
+        out = torch.cat((rgb, sigma), -1)
+        return out
