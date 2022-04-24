@@ -15,6 +15,7 @@ def PosEncode(x, L):
     args:
         x: (N, 3)
         L: half the expanded dimension
+            In the original paper, L=10 for position, L=4 for direction
     
     out:
         enc_x: (N, 3*2*L)

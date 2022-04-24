@@ -14,8 +14,8 @@ class NeRF(nn.Module):
         '''
 
         args:
-            ch_in_pos: number of input channels for encoded position
-            ch_in_dir: number of input channels for encoded direction
+            ch_in_pos: number of input channels for encoded position (3*2*L)
+            ch_in_dir: number of input channels for encoded direction (3*2*L)
             skip: where to include skip connection
             fc_depth: depth of fully connected layer
             fc_width: width of fully connected layer
