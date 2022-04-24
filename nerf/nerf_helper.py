@@ -67,6 +67,7 @@ def nerf_iter_once(model: nn.Module,
     nerf_out = nerf_out.reshape(img_dim[0], img_dim[1], num_samples, 4)
     # Perform differentiable volume rendering to re-synthesize the RGB image.
     rgb_predicted, depth_img = render_from_nerf(nerf_out, depth_values)
+    print(rgb_predicted[50,50])
 
     return rgb_predicted, depth_img
 
@@ -108,7 +109,7 @@ def tinynerf_iter_once(model: nn.Module,
 
     # encode points
     # TODO: set encoding dimension as parameter
-    encoded_samples = PosEncode(samples, 10)
+    encoded_samples = PosEncode(samples, 10, True)
     # encoded_dirs = PosEncode(rays_d.reshape(-1,3), 4)
     # print(encoded_dirs.shape)
     # print(encoded_samples.shape)
@@ -131,107 +132,108 @@ def tinynerf_iter_once(model: nn.Module,
 
     nerf_out = nerf_out.reshape(img_dim[0], img_dim[1], num_samples, 4)
     # Perform differentiable volume rendering to re-synthesize the RGB image.
-    rgb_predicted, depth_img = render_from_nerf(nerf_out, rays_o, depth_values)
+    print(nerf_out.shape)
+    rgb_predicted, depth_img = render_from_nerf(nerf_out, depth_values)
 
     return rgb_predicted, depth_img
 
 
-# def PosEncode(x, L, include_itself=False):
-#     '''
-#     Mapping inputs to a higher dimensional space using
-#     high frequency functions enables better fitting of data
-#     x -> (sin(2^0 x), cos(2^0 x), ... , sin(2^(L-1) x), cos(2^(L-1) x))
+def PosEncode(x, L, include_itself=False):
+    '''
+    Mapping inputs to a higher dimensional space using
+    high frequency functions enables better fitting of data
+    x -> (sin(2^0 x), cos(2^0 x), ... , sin(2^(L-1) x), cos(2^(L-1) x))
 
-#     args:
-#         x: (N, 3)
-#         L: half the expanded dimension
-#             In the original paper, L=10 for position, L=4 for direction
+    args:
+        x: (N, 3)
+        L: half the expanded dimension
+            In the original paper, L=10 for position, L=4 for direction
     
-#     out:
-#         enc_x: (N, 3*2*L)
-#     '''
-#     N = x.shape[0]
+    out:
+        enc_x: (N, 3*2*L)
+    '''
+    N = x.shape[0]
 
-#     # Normalize x
-#     sum_x = torch.sqrt(torch.sum(x**2, dim=1)).reshape(N, 1)
-#     xx = x / sum_x
+    # Normalize x
+    sum_x = torch.sqrt(torch.sum(x**2, dim=1)).reshape(N, 1)
+    xx = x / sum_x
 
-#     # encode
-#     if include_itself:
-#         enc_x = torch.zeros((N, 3, 2 * L + 1), dtype=x.dtype, device=x.device)
-#         freq_band = torch.floor(torch.arange(0, L, 0.5, device=x.device))
-#         freq_band = torch.cat((torch.tensor([0], device=x.device), freq_band))
+    # encode
+    if include_itself:
+        enc_x = torch.zeros((N, 3, 2 * L + 1), dtype=x.dtype, device=x.device)
+        freq_band = torch.floor(torch.arange(0, L, 0.5, device=x.device))
+        freq_band = torch.cat((torch.tensor([0], device=x.device), freq_band))
         
-#         freq_t_x = freq_band.reshape(1, -1) * xx.reshape(N, -1, 1)  # freq_band*x (N, 3, 2L)
+        freq_t_x = freq_band.reshape(1, -1) * xx.reshape(N, -1, 1)  # freq_band*x (N, 3, 2L)
         
-#         enc_x[:, :, 0] = x
-#         enc_x[:, :, 1::2] = torch.sin(freq_t_x[:, :, 1::2])
-#         enc_x[:, :, 2::2] = torch.cos(freq_t_x[:, :, 2::2])
-#         # enc_x = enc_x.reshape(N, 6*L+3)
+        enc_x[:, :, 0] = x
+        enc_x[:, :, 1::2] = torch.sin(freq_t_x[:, :, 1::2])
+        enc_x[:, :, 2::2] = torch.cos(freq_t_x[:, :, 2::2])
+        # enc_x = enc_x.reshape(N, 6*L+3)
 
 
-#     else:
-#         enc_x = torch.zeros((N, 3, 2 * L), dtype=x.dtype, device=x.device)
-#         freq_band = 2**torch.floor(torch.arange(0, L, 0.5, device=x.device))
-#         freq_t_x = freq_band.reshape(1, -1) * xx.reshape(N, -1, 1)  # freq_band*x (N, 3, 2L)
+    else:
+        enc_x = torch.zeros((N, 3, 2 * L), dtype=x.dtype, device=x.device)
+        freq_band = 2**torch.floor(torch.arange(0, L, 0.5, device=x.device))
+        freq_t_x = freq_band.reshape(1, -1) * xx.reshape(N, -1, 1)  # freq_band*x (N, 3, 2L)
 
-#         enc_x[:, :, 0::2] = torch.sin(freq_t_x[:, :, 0::2])
-#         enc_x[:, :, 1::2] = torch.cos(freq_t_x[:, :, 1::2])
-#         # enc_x = enc_x.reshape(N, 6*L)
-#     enc_x = torch.flatten(enc_x, start_dim=1)
+        enc_x[:, :, 0::2] = torch.sin(freq_t_x[:, :, 0::2])
+        enc_x[:, :, 1::2] = torch.cos(freq_t_x[:, :, 1::2])
+        # enc_x = enc_x.reshape(N, 6*L)
+    enc_x = torch.flatten(enc_x, start_dim=1)
     
-#     return enc_x
+    return enc_x
 
 
 
-def PosEncode(
-    tensor, num_encoding_functions=6, include_input=True, log_sampling=True
-) -> torch.Tensor:
-  r"""Apply positional encoding to the input.
+# def PosEncode(
+#     tensor, num_encoding_functions=6, include_input=True, log_sampling=True
+# ) -> torch.Tensor:
+#   r"""Apply positional encoding to the input.
 
-  TODO: From COLAB
+#   TODO: From COLAB
 
-  Args:
-    tensor (torch.Tensor): Input tensor to be positionally encoded.
-    num_encoding_functions (optional, int): Number of encoding functions used to
-        compute a positional encoding (default: 6).
-    include_input (optional, bool): Whether or not to include the input in the
-        computed positional encoding (default: True).
-    log_sampling (optional, bool): Sample logarithmically in frequency space, as
-        opposed to linearly (default: True).
+#   Args:
+#     tensor (torch.Tensor): Input tensor to be positionally encoded.
+#     num_encoding_functions (optional, int): Number of encoding functions used to
+#         compute a positional encoding (default: 6).
+#     include_input (optional, bool): Whether or not to include the input in the
+#         computed positional encoding (default: True).
+#     log_sampling (optional, bool): Sample logarithmically in frequency space, as
+#         opposed to linearly (default: True).
   
-  Returns:
-    (torch.Tensor): Positional encoding of the input tensor.
-  """
-  # TESTED
-  # Trivially, the input tensor is added to the positional encoding.
-  encoding = [tensor] if include_input else []
-  # Now, encode the input using a set of high-frequency functions and append the
-  # resulting values to the encoding.
-  frequency_bands = None
-  if log_sampling:
-      frequency_bands = 2.0 ** torch.linspace(
-            0.0,
-            num_encoding_functions - 1,
-            num_encoding_functions,
-            dtype=tensor.dtype,
-            device=tensor.device,
-        )
-  else:
-      frequency_bands = torch.linspace(
-          2.0 ** 0.0,
-          2.0 ** (num_encoding_functions - 1),
-          num_encoding_functions,
-          dtype=tensor.dtype,
-          device=tensor.device,
-      )
+#   Returns:
+#     (torch.Tensor): Positional encoding of the input tensor.
+#   """
+#   # TESTED
+#   # Trivially, the input tensor is added to the positional encoding.
+#   encoding = [tensor] if include_input else []
+#   # Now, encode the input using a set of high-frequency functions and append the
+#   # resulting values to the encoding.
+#   frequency_bands = None
+#   if log_sampling:
+#       frequency_bands = 2.0 ** torch.linspace(
+#             0.0,
+#             num_encoding_functions - 1,
+#             num_encoding_functions,
+#             dtype=tensor.dtype,
+#             device=tensor.device,
+#         )
+#   else:
+#       frequency_bands = torch.linspace(
+#           2.0 ** 0.0,
+#           2.0 ** (num_encoding_functions - 1),
+#           num_encoding_functions,
+#           dtype=tensor.dtype,
+#           device=tensor.device,
+#       )
 
-  for freq in frequency_bands:
-      for func in [torch.sin, torch.cos]:
-          encoding.append(func(tensor * freq))
+#   for freq in frequency_bands:
+#       for func in [torch.sin, torch.cos]:
+#           encoding.append(func(tensor * freq))
 
-  # Special case, for no positional encoding
-  if len(encoding) == 1:
-      return encoding[0]
-  else:
-      return torch.cat(encoding, dim=-1)
+#   # Special case, for no positional encoding
+#   if len(encoding) == 1:
+#       return encoding[0]
+#   else:
+#       return torch.cat(encoding, dim=-1)

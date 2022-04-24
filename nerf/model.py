@@ -94,7 +94,6 @@ class TinyNeRF(nn.Module):
 
         args:
             ch_in_pos: number of input channels for encoded position (3*2*L)
-            ch_in_dir: number of input channels for encoded direction (3*2*L)
         '''
 
         torch.set_default_dtype(torch.double)
