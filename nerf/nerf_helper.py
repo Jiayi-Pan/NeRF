@@ -23,7 +23,7 @@ def PosEncode(x, L):
     enc_x = torch.zeros((N, 3, 2*L), dtype=x.dtype, device=x.device)
 
     # Normalize x
-    sum_x = torch.sqrt(torch.sum(x**2, dim=1))
+    sum_x = torch.sqrt(torch.sum(x**2, dim=1)).reshape(N, 1)
     x /= sum_x
     
     # encode
