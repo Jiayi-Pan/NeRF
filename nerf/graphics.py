@@ -1,6 +1,69 @@
 import torch
 from torch import Tensor
 import torch.nn.functional as F
+import numpy as np
+
+
+def pose_trans(x:float,y:float,z:float)->Tensor:
+    """
+    generate a tensor that translates pose by (x,y,z)
+    Args:
+        x (float)
+        y (float)
+        z (float)
+
+    Returns:
+        Tensor: transformation matrix of shape (4,4)
+    """
+    return Tensor([
+        [1,0,0,x],
+        [0,1,0,y],
+        [0,0,1,z],
+        [0,0,0,1]
+    ]).float()
+
+def pose_rotate(theta:float, phi:float)->Tensor:
+    """
+    generate a tensor that rotate pose by phi
+    Args:
+        theta: the theta angle
+        phi: the phi angle
+
+    Returns:
+        Tensor: transformation matrix of shape (4,4)
+    """
+    return Tensor([
+        [np.cos(theta),0,-np.sin(theta),0],
+        [0,1,0,0],
+        [np.sin(theta),0,np.cos(theta),0],
+        [0,0,0,1]
+    ]).float() @ Tensor([
+        [1,0,0,0],
+        [0,np.cos(phi),-np.sin(phi),0],
+        [0,np.sin(phi),np.cos(phi),0],
+        [0,0,0,1]
+    ]).float()
+
+
+def generate_demo_poses(height:float=4,  num_poses:float=40) -> Tensor:
+    """
+    Generate demo poses
+
+    Args:
+        height (float): height of the view
+        num_poses (float): number of poses
+
+    Returns:
+        Tensor: batch of poses with shape (num_poses, 4, 4)
+    """
+    def pose_spherical(theta, phi, radius):
+        c2w = pose_trans(0,0, radius)
+        c2w = pose_rotate(theta/180 * np.pi, phi/180 * np.pi) @ c2w
+        # inverse axis
+        c2w = torch.Tensor([[-1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]).float() @ c2w
+        return c2w
+
+    return torch.stack([pose_spherical(angle, -30.0, height) for angle in np.linspace(-180, 180, num_poses + 1)[:-1]], 0)
 
 
 def compute_rays(img_dim: tuple, int_mat: Tensor, mat_c2w: Tensor) -> tuple:
