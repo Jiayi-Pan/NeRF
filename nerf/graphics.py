@@ -45,13 +45,13 @@ def pose_rotate(theta:float, phi:float)->Tensor:
     ]).float()
 
 
-def generate_demo_poses(height:float=4,  num_poses:float=40) -> Tensor:
+def generate_demo_poses(height:float=4,  num_poses:int=40) -> Tensor:
     """
     Generate demo poses
 
     Args:
         height (float): height of the view
-        num_poses (float): number of poses
+        num_poses (int): number of poses
 
     Returns:
         Tensor: batch of poses with shape (num_poses, 4, 4)
