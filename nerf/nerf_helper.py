@@ -7,14 +7,14 @@ from nerf.graphics import *
 
 
 def nerf_iter_once(model: nn.Module,
-                  img_dim: tuple[int, int],
+                  img_dim: tuple,
                   int_mat: Tensor,
                   mat_c2w: Tensor,
-                  sample_thresh: tuple[float, float],
+                  sample_thresh: tuple,
                   L_pos=10,
                   L_dir=4,
                   num_samples: int = 16,
-                  batch_size=10)->tuple[Tensor, Tensor]:
+                  batch_size=10)->tuple:
     """
     iterate one time
 
@@ -76,14 +76,14 @@ def nerf_iter_once(model: nn.Module,
 
 
 def tinynerf_iter_once(model: nn.Module,
-                  img_dim: tuple[int, int],
+                  img_dim: tuple,
                   int_mat: Tensor,
                   mat_c2w: Tensor,
-                  sample_thresh: tuple[float, float],
+                  sample_thresh: tuple,
                   L_pos=6,
                   L_dir=0,
                   num_samples: int = 16,
-                  batch_size=10)->tuple[Tensor, Tensor]:
+                  batch_size=10)->tuple:
     """
     iterate one time
 

@@ -3,7 +3,7 @@ from torch import Tensor
 import torch.nn.functional as F
 
 
-def compute_rays(img_dim: tuple[int, int], int_mat: Tensor, mat_c2w: Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+def compute_rays(img_dim: tuple, int_mat: Tensor, mat_c2w: Tensor) -> tuple:
     """
     Compute rays for each pixel of an image
 
@@ -44,9 +44,9 @@ def compute_rays(img_dim: tuple[int, int], int_mat: Tensor, mat_c2w: Tensor) -> 
 def queries_from_rays(
     rays_ori_xyz: torch.Tensor,
     rays_dir_xyz: torch.Tensor,
-    sample_thresh: tuple[float, float],
+    sample_thresh: tuple,
     num_samples: int
-) -> tuple[torch.Tensor, torch.Tensor]:
+) -> tuple:
     """Compute the input queries to the NeRF model for the given rays in an image of shape (H,W)
 
     Args:
@@ -94,7 +94,7 @@ def queries_from_rays(
 def render_from_nerf(
     nerf_output: torch.Tensor,
     sampled_depths: torch.Tensor
-) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+) -> tuple:
     """ Compute the rendering result from the output of NeRF
 
     Args:

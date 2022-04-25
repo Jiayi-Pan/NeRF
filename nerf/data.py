@@ -4,8 +4,7 @@ import json
 import os.path
 import cv2
 
-def load_blender(data_path: str, scale_factor: int = 0, data_type="train", device="cpu") -> tuple[
-    torch.Tensor, torch.Tensor, torch.Tensor]:
+def load_blender(data_path: str, scale_factor: int = 0, data_type="train", device="cpu") -> tuple:
     """
     load data from blender datasets
 
