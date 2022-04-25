@@ -34,7 +34,6 @@ def nerf_iter_once(model: nn.Module,
         )
     """
     # compute rays on all pixels of the image
-    # start from cpu
     rays_o, rays_d = compute_rays(img_dim, int_mat, mat_c2w)
 
     # Sample points on each ray
@@ -65,7 +64,7 @@ def nerf_iter_once(model: nn.Module,
         dirs_crop = dirs_crop.to(mat_c2w)
 
         nerf_out_list.append(
-                model(samples_crop, dirs_crop).cpu()
+                model(samples_crop, dirs_crop)
         )
     
     nerf_out = torch.cat(nerf_out_list, dim=0)
