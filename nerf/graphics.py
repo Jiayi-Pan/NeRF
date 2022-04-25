@@ -22,21 +22,22 @@ def compute_rays(img_dim: tuple, int_mat: Tensor, mat_c2w: Tensor) -> tuple:
     i, j = torch.meshgrid(torch.linspace(0, img_w-1, img_w),
                           torch.linspace(0, img_h-1, img_h), indexing="xy")
     # change device
-    i = i.to(int_mat)
-    j = j.to(int_mat)
+    # i = i.to(int_mat)
+    # j = j.to(int_mat)
     # pixel -> cam frame
-    fx, fy = int_mat[0, 0], int_mat[1, 1]
-    cx, cy = int_mat[0, 2], int_mat[1, 2]
+    int_mat_cpu = int_mat.cpu()
+    fx, fy = int_mat_cpu[0, 0], int_mat_cpu[1, 1]
+    cx, cy = int_mat_cpu[0, 2], int_mat_cpu[1, 2]
     # print(fx, fy, cx, cy)
     rays_d: Tensor = torch.stack(
         [(i-cx)/fx, -(j - cy)/fy, -torch.ones_like(i)], dim=-1)
     # cam frame -> world
-    rays_d = torch.sum(rays_d[..., None, :] * mat_c2w[:3, :3], dim=-1)
+    rays_d = torch.sum(rays_d[..., None, :] * mat_c2w[:3, :3].cpu(), dim=-1).cpu()
     # print(rays_d.shape)
     # rays_d = F.normalize(rays_d, dim=2)
 
     # origin of the rays
-    rays_o = mat_c2w[:3, -1].expand(rays_d.shape)
+    rays_o = mat_c2w[:3, -1].cpu().expand(rays_d.shape)
 
     return rays_o, rays_d
 
@@ -109,7 +110,8 @@ def render_from_nerf(
     # normalize the nerf output
     normed_raw_alpha_maps = F.relu(nerf_output[..., 3])
     # TODO: why this?
-    rgb_maps = torch.sigmoid(nerf_output[..., :3])
+    # rgb_maps = torch.sigmoid(nerf_output[..., :3])
+    rgb_maps = nerf_output[..., :3]
 
     # span for each sampled points by diff
     depth_spans = sampled_depths[..., 1:] - sampled_depths[..., :-1]

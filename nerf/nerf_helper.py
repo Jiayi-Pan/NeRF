@@ -34,6 +34,7 @@ def nerf_iter_once(model: nn.Module,
         )
     """
     # compute rays on all pixels of the image
+    # start from cpu
     rays_o, rays_d = compute_rays(img_dim, int_mat, mat_c2w)
 
     # Sample points on each ray
@@ -44,7 +45,6 @@ def nerf_iter_once(model: nn.Module,
     samples = samples.reshape(-1, 3)
 
     # encode points
-    # TODO: set encoding dimension as parameter
     encoded_samples = PosEncode(samples, L_pos, True)
     encoded_dirs = PosEncode(rays_d.reshape(-1,3), L_dir, True)
     # print(encoded_dirs.shape)
@@ -59,15 +59,20 @@ def nerf_iter_once(model: nn.Module,
         else:
             samples_crop = encoded_samples[num_samples * i: num_samples * (i+batch_size)]
             dirs_crop = encoded_dirs[i:i+batch_size].repeat(num_samples,1)
+        
+        # change device
+        samples_crop = samples_crop.to(mat_c2w)
+        dirs_crop = dirs_crop.to(mat_c2w)
 
         nerf_out_list.append(
-                model(samples_crop, dirs_crop)
+                model(samples_crop, dirs_crop).cpu()
         )
     
     nerf_out = torch.cat(nerf_out_list, dim=0)
 
     nerf_out = nerf_out.reshape(img_dim[0], img_dim[1], num_samples, 4)
     # Perform differentiable volume rendering to re-synthesize the RGB image.
+    depth_values = depth_values.to(nerf_out)
     rgb_predicted, depth_img = render_from_nerf(nerf_out, depth_values)
     # print(rgb_predicted[50,50])
 
