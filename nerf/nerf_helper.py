@@ -11,6 +11,8 @@ def nerf_iter_once(model: nn.Module,
                   int_mat: Tensor,
                   mat_c2w: Tensor,
                   sample_thresh: tuple[float, float],
+                  L_pos=10,
+                  L_dir=4,
                   num_samples: int = 16,
                   batch_size=10)->tuple[Tensor, Tensor]:
     """
@@ -43,8 +45,8 @@ def nerf_iter_once(model: nn.Module,
 
     # encode points
     # TODO: set encoding dimension as parameter
-    encoded_samples = PosEncode(samples, 10)
-    encoded_dirs = PosEncode(rays_d.reshape(-1,3), 4)
+    encoded_samples = PosEncode(samples, L_pos, True)
+    encoded_dirs = PosEncode(rays_d.reshape(-1,3), L_dir, True)
     # print(encoded_dirs.shape)
     # print(encoded_samples.shape)
     # train each pixel
@@ -67,7 +69,7 @@ def nerf_iter_once(model: nn.Module,
     nerf_out = nerf_out.reshape(img_dim[0], img_dim[1], num_samples, 4)
     # Perform differentiable volume rendering to re-synthesize the RGB image.
     rgb_predicted, depth_img = render_from_nerf(nerf_out, depth_values)
-    print(rgb_predicted[50,50])
+    # print(rgb_predicted[50,50])
 
     return rgb_predicted, depth_img
 
@@ -78,6 +80,8 @@ def tinynerf_iter_once(model: nn.Module,
                   int_mat: Tensor,
                   mat_c2w: Tensor,
                   sample_thresh: tuple[float, float],
+                  L_pos=6,
+                  L_dir=0,
                   num_samples: int = 16,
                   batch_size=10)->tuple[Tensor, Tensor]:
     """
@@ -110,7 +114,7 @@ def tinynerf_iter_once(model: nn.Module,
 
     # encode points
     # TODO: set encoding dimension as parameter
-    encoded_samples = PosEncode(samples, 6, True)
+    encoded_samples = PosEncode(samples, L_pos, True)
     # encoded_dirs = PosEncode(rays_d.reshape(-1,3), 4)
     # print(encoded_dirs.shape)
     # print(encoded_samples.shape)

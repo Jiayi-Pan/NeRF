@@ -110,7 +110,7 @@ class TinyNeRF(nn.Module):
     
     def forward(self, x):
         '''
-        (pos + dir) ---NN--> (rgb, sigma)
+        (pos) ---NN--> (rgb, sigma)
 
         '''
         x = self.relu(self.layer1(x))
