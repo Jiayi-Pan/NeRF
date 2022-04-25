@@ -72,6 +72,7 @@ def nerf_iter_once(model: nn.Module,
     return rgb_predicted, depth_img
 
 
+
 def tinynerf_iter_once(model: nn.Module,
                   img_dim: tuple[int, int],
                   int_mat: Tensor,
@@ -109,7 +110,7 @@ def tinynerf_iter_once(model: nn.Module,
 
     # encode points
     # TODO: set encoding dimension as parameter
-    encoded_samples = PosEncode(samples, 10, True)
+    encoded_samples = PosEncode(samples, 6, True)
     # encoded_dirs = PosEncode(rays_d.reshape(-1,3), 4)
     # print(encoded_dirs.shape)
     # print(encoded_samples.shape)
@@ -122,7 +123,7 @@ def tinynerf_iter_once(model: nn.Module,
             # dirs_crop = encoded_dirs[i:].repeat(num_samples,1)
         else:
             samples_crop = encoded_samples[num_samples * i: num_samples * (i+batch_size)]
-        #     dirs_crop = encoded_dirs[i:i+batch_size].repeat(num_samples,1)
+            # dirs_crop = encoded_dirs[i:i+batch_size].repeat(num_samples,1)
 
         nerf_out_list.append(
                 model(samples_crop)
@@ -132,10 +133,14 @@ def tinynerf_iter_once(model: nn.Module,
 
     nerf_out = nerf_out.reshape(img_dim[0], img_dim[1], num_samples, 4)
     # Perform differentiable volume rendering to re-synthesize the RGB image.
-    print(nerf_out.shape)
     rgb_predicted, depth_img = render_from_nerf(nerf_out, depth_values)
 
     return rgb_predicted, depth_img
+
+
+
+
+
 
 
 def PosEncode(x, L, include_itself=False):
@@ -155,17 +160,18 @@ def PosEncode(x, L, include_itself=False):
     N = x.shape[0]
 
     # Normalize x
-    sum_x = torch.sqrt(torch.sum(x**2, dim=1)).reshape(N, 1)
-    xx = x / sum_x
+    # sum_x = torch.sqrt(torch.sum(x**2, dim=1)).reshape(N, 1)
+    # xx = x / sum_x
+    xx = x
 
     # encode
     if include_itself:
         enc_x = torch.zeros((N, 3, 2 * L + 1), dtype=x.dtype, device=x.device)
-        freq_band = torch.floor(torch.arange(0, L, 0.5, device=x.device))
+        freq_band = 2 ** torch.floor(torch.arange(0, L, 0.5, device=x.device))
         freq_band = torch.cat((torch.tensor([0], device=x.device), freq_band))
         
         freq_t_x = freq_band.reshape(1, -1) * xx.reshape(N, -1, 1)  # freq_band*x (N, 3, 2L)
-        
+
         enc_x[:, :, 0] = x
         enc_x[:, :, 1::2] = torch.sin(freq_t_x[:, :, 1::2])
         enc_x[:, :, 2::2] = torch.cos(freq_t_x[:, :, 2::2])
@@ -185,55 +191,3 @@ def PosEncode(x, L, include_itself=False):
     return enc_x
 
 
-
-# def PosEncode(
-#     tensor, num_encoding_functions=6, include_input=True, log_sampling=True
-# ) -> torch.Tensor:
-#   r"""Apply positional encoding to the input.
-
-#   TODO: From COLAB
-
-#   Args:
-#     tensor (torch.Tensor): Input tensor to be positionally encoded.
-#     num_encoding_functions (optional, int): Number of encoding functions used to
-#         compute a positional encoding (default: 6).
-#     include_input (optional, bool): Whether or not to include the input in the
-#         computed positional encoding (default: True).
-#     log_sampling (optional, bool): Sample logarithmically in frequency space, as
-#         opposed to linearly (default: True).
-  
-#   Returns:
-#     (torch.Tensor): Positional encoding of the input tensor.
-#   """
-#   # TESTED
-#   # Trivially, the input tensor is added to the positional encoding.
-#   encoding = [tensor] if include_input else []
-#   # Now, encode the input using a set of high-frequency functions and append the
-#   # resulting values to the encoding.
-#   frequency_bands = None
-#   if log_sampling:
-#       frequency_bands = 2.0 ** torch.linspace(
-#             0.0,
-#             num_encoding_functions - 1,
-#             num_encoding_functions,
-#             dtype=tensor.dtype,
-#             device=tensor.device,
-#         )
-#   else:
-#       frequency_bands = torch.linspace(
-#           2.0 ** 0.0,
-#           2.0 ** (num_encoding_functions - 1),
-#           num_encoding_functions,
-#           dtype=tensor.dtype,
-#           device=tensor.device,
-#       )
-
-#   for freq in frequency_bands:
-#       for func in [torch.sin, torch.cos]:
-#           encoding.append(func(tensor * freq))
-
-#   # Special case, for no positional encoding
-#   if len(encoding) == 1:
-#       return encoding[0]
-#   else:
-#       return torch.cat(encoding, dim=-1)
