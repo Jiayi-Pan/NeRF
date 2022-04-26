@@ -14,5 +14,8 @@ dependencies:
   - matplotlib
   - jupyter
   - configargparse
+  - imageio-ffmpeg
+  - ipywidgets
+  - pytorch_msssim
   - pip:
       - opencv-python

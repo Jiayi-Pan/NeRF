@@ -135,15 +135,15 @@ def compare(**kwargs):
     scale_factor = kwargs["scale_factor"]
     DEVICE = kwargs["DEVICE"]
     model = kwargs["model"]
-    img_h, img_w = imgs[1:3]
+    img_h, img_w = imgs.shape[1:3]
     sample_t = kwargs["sample_t"]
     L_pos = kwargs["L_pos"]
     L_dir = kwargs["L_dir"]
     num_samples = kwargs["num_samples"]
     batch_size = kwargs["batch_size"]
 
-    idx = [78, 84, 90, 158] #hotdog, train, train, test, test
-    # idx = [6, 52, 38, 87]  # lego
+    # idx = [78, 84, 90, 158] #hotdog, train, train, test, test
+    idx = [6, 52, 38, 87]  # lego
 
     imgs_test, poses_test, int_mat_test = load_blender(config.datadir, data_type="test",scale_factor=scale_factor, device="cpu")
 
@@ -227,5 +227,5 @@ def compare(**kwargs):
     plt.subplot(428)
     plt.imshow(imgs_test[idx[3]])
     plt.title(f"Ground Truth img: Test {idx[3]}")
-    
-    plt.savefig("hotdog_cmp.png")
+    plt.show()
+    # plt.savefig("hotdog_cmp.png")
