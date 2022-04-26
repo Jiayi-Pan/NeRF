@@ -60,10 +60,10 @@ def generate_demo_poses(height:float=4,  num_poses:int=40) -> Tensor:
         c2w = pose_trans(0,0, radius)
         c2w = pose_rotate(theta/180 * np.pi, phi/180 * np.pi) @ c2w
         # inverse axis
-        c2w = torch.Tensor([[-1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]).float() @ c2w
+        c2w = torch.Tensor([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]).float() @ c2w
         return c2w
 
-    return torch.stack([pose_spherical(angle, -30.0, height) for angle in np.linspace(-180, 180, num_poses + 1)[:-1]], 0)
+    return torch.stack([pose_spherical(angle, -30, height) for angle in np.linspace(-180, 180, num_poses + 1)[:-1]], 0)
 
 
 def compute_rays(img_dim: tuple, int_mat: Tensor, mat_c2w: Tensor) -> tuple:
