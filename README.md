@@ -2,9 +2,9 @@
 
 > A course mini project for EECS 498 - Deep learning for Computer Vision 2022
 
-[Che Chen](https://github.com/TomCC7)*, [Hanxi Wan](https://github.com/WanHanxi)*, [Jiayi Pan](https://github.com/Jiayi-Pan)*
+[Che Chen](https://github.com/TomCC7) *, [Hanxi Wan](https://github.com/WanHanxi) *, [Jiayi Pan](https://github.com/Jiayi-Pan) *
 
-+ Alphabetical-order, equal contribution
++ *: Alphabetical-order, equal contribution
 
 ## Quick start
 
