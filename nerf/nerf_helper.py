@@ -1,6 +1,6 @@
 import torch
 import torch.utils.data
-from torch import nn
+from torch import nn, scalar_tensor
 from torch.nn import functional as F
 from torch import Tensor
 from nerf.graphics import *
@@ -126,3 +126,106 @@ def PosEncode(x, L, include_itself=False):
     return enc_x
 
 
+def compare(**kwargs):
+    from nerf.data import load_blender
+    from matplotlib import pyplot as plt
+    imgs = kwargs["imgs"]
+    poses = kwargs["poses"]
+    config = kwargs["config"]
+    scale_factor = kwargs["scale_factor"]
+    DEVICE = kwargs["DEVICE"]
+    model = kwargs["model"]
+    img_h, img_w = imgs[1:3]
+    sample_t = kwargs["sample_t"]
+    L_pos = kwargs["L_pos"]
+    L_dir = kwargs["L_dir"]
+    num_samples = kwargs["num_samples"]
+    batch_size = kwargs["batch_size"]
+
+    idx = [78, 84, 90, 158] #hotdog, train, train, test, test
+    # idx = [6, 52, 38, 87]  # lego
+
+    imgs_test, poses_test, int_mat_test = load_blender(config.datadir, data_type="test",scale_factor=scale_factor, device="cpu")
+
+    c2w0 = poses[idx[0]].clone().to(DEVICE)
+    c2w1 = poses[idx[1]].clone().to(DEVICE)
+    c2w2 = poses_test[idx[2]].clone().to(DEVICE)
+    c2w3 = poses_test[idx[3]].clone().to(DEVICE)
+
+    pred0, _ = nerf_iter_once(
+                    model,
+                    (img_h, img_w),
+                    int_mat_test.to(DEVICE),
+                    c2w0,
+                    sample_t,
+                    L_pos,
+                    L_dir,
+                    num_samples=num_samples,
+                    batch_size=batch_size
+            )
+    pred1, _ = nerf_iter_once(
+                    model,
+                    (img_h, img_w),
+                    int_mat_test.to(DEVICE),
+                    c2w1,
+                    sample_t,
+                    L_pos,
+                    L_dir,
+                    num_samples=num_samples,
+                    batch_size=batch_size
+            )
+    pred2, _ = nerf_iter_once(
+                    model,
+                    (img_h, img_w),
+                    int_mat_test.to(DEVICE),
+                    c2w2,
+                    sample_t,
+                    L_pos,
+                    L_dir,
+                    num_samples=num_samples,
+                    batch_size=batch_size
+            )
+    pred3, _ = nerf_iter_once(
+                    model,
+                    (img_h, img_w),
+                    int_mat_test.to(DEVICE),
+                    c2w3,
+                    sample_t,
+                    L_pos,
+                    L_dir,
+                    num_samples=num_samples,
+                    batch_size=batch_size
+            )
+
+    plt.figure(figsize=(8, 16))
+    plt.subplot(421)
+    img_np = pred0.detach().cpu().numpy()
+    plt.imshow(img_np)
+    plt.title(f"Pred img: Train {idx[0]}")
+    plt.subplot(422)
+    plt.imshow(imgs[idx[0]])
+    plt.title(f"Ground Truth img: Train {idx[0]}")
+    plt.subplot(423)
+    img_np = pred1.detach().cpu().numpy()
+    plt.imshow(img_np)
+    plt.title(f"Pred img: Train {idx[1]}")
+    plt.subplot(424)
+    plt.imshow(imgs[idx[1]])
+    plt.title(f"Ground Truth img: Train {idx[1]}")
+    
+    plt.subplot(425)
+    img_np = pred2.detach().cpu().numpy()
+    plt.imshow(img_np)
+    plt.title(f"Pred img: Test {idx[2]}")
+    plt.subplot(426)
+    plt.imshow(imgs_test[idx[2]])
+    plt.title(f"Ground Truth img: Test {idx[2]}")
+    plt.subplot(427)
+    img_np = pred3.detach().cpu().numpy()
+    plt.imshow(img_np)
+    plt.title(f"Pred img: Test {idx[3]}")
+    plt.subplot(428)
+    plt.imshow(imgs_test[idx[3]])
+    plt.title(f"Ground Truth img: Test {idx[3]}")
+    
+    plt.savefig("hotdog_cmp.png")

@@ -1,4 +1,4 @@
-expname = "blender_paper_lego"
+expname = "blender_lego"
 basedir = "./logs"
 datadir = "./data/nerf_synthetic/lego"
 dataset_type = "blender"
